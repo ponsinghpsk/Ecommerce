@@ -1,0 +1,79 @@
+server:
+  port: 8989
+spring:
+  application:
+    name: API-Gateway
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allow-credentials: false
+            allowed-origin-patterns: "*"
+            allowed-headers: "*"
+            allowed-methods: "*"
+      routes:
+      - id: product-service
+        predicates:
+        - Path= /product-service/**
+        uri: lb://PRODUCT-SERVICE
+        filters:
+        - RewritePath=/(?<segment>.*), /${segment}
+      - id: user-service
+        predicates:
+        - Path= /user-service/**
+        uri: lb://USER-SERVICE
+        filters:
+        - RewritePath=/(?<segment>.*), /${segment}
+      - id: admin-service
+        predicates:
+        - Path= /admin-service/**
+        uri: lb://ADMIN-SERVICE
+        filters:
+        - RewritePath=/(?<segment>.*), /${segment}
+      - id: admin-service-swagger
+        predicates:
+        - Path= /aggregate/admin-service/v3/api-docs
+        uri: lb://ADMIN-SERVICE
+        filters:
+        - RewritePath=/aggregate/(?<segment>.*), /${segment}
+      - id: user-service-swagger
+        predicates:
+        - Path= /aggregate/user-service/v3/api-docs
+        uri: lb://USER-SERVICE
+        filters:
+        - RewritePath=/aggregate/(?<segment>.*), /${segment}
+      - id: product-service-swagger
+        predicates:
+        - Path= /aggregate/product-service/v3/api-docs
+        uri: lb://PRODUCT-SERVICE
+        filters:
+        - RewritePath=/aggregate/(?<segment>.*), /${segment} 
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+     - name: product-service-swagger
+       url: /aggregate/product-service/v3/api-docs
+     - name: user-service-swagger
+       url: /aggregate/user-service/v3/api-docs
+     - name: admin-service-swagger
+       url: /aggregate/admin-service/v3/api-docs
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    org:
+     springframework:
+       cloud:
+        gateway: DEBUG
+       web: DEBUG
